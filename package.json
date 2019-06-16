@@ -40,7 +40,8 @@
     "workbox-webpack-plugin": "^3.3.1"
   },
   "dependencies": {
-    "lit-element": "^2.0.0",
-    "@webcomponents/webcomponentsjs": "^2.1.3"
+    "@polymer/lit-element": "^0.7.1",
+    "@webcomponents/webcomponentsjs": "^2.1.3",
+    "lit-element": "^2.0.0"
   }
 }
