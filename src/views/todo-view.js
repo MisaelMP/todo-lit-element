@@ -1,39 +1,43 @@
-import { LitElement, html } from 'lit-element';
+import { html } from 'lit-element';
 import '@vaadin/vaadin-text-field';
 import '@vaadin/vaadin-button';
 import '@vaadin/vaadin-checkbox';
 import '@vaadin/vaadin-radio-button/vaadin-radio-button';
 import '@vaadin/vaadin-radio-button/vaadin-radio-group';
+import { connect } from 'pwa-helpers';
+import { store } from '../redux/store';
+import { VisibilityFilters, getVisibleTodosSelector } from '../redux/reducer';
+import {
+  addTodo,
+  updateTodoStatus,
+  updateFilter,
+  clearCompleted
+} from '../redux/actions.js';
+import { BaseView } from './base-view';
 
-const VisibilityFilters = {
-    SHOW_ALL: 'All',
-    SHOW_ACTIVE: 'Active',
-    SHOW_COMPLETED: 'Completed'
-};
 
-class TodoView extends LitElement {
-    static get properties() {
-        return {
-            todos: {
-                type: Array
-            },
-            filter: {
-                type: String
-            },
-            task: {
-                type: String
-            }
-        }
-    }
+class TodoView extends connect(store)(BaseView) {
+	static get properties() {
+		return {
+			todos: {
+				type: Array
+			},
+			filter: {
+				type: String
+			},
+			task: {
+				type: String
+			}
+		}
+	}
 
-    constructor() {
-        super();
-        this.todos = [];
-        this.filter = VisibilityFilters.SHOW_ALL;
-        this.task = ''
-    }
-    render() {
-        return html `
+  stateChanged(state) {
+    this.todos = getVisibleTodosSelector(state);
+    this.filter = state.filter
+  }
+
+	render() {
+		return html `
          <style>
             todo-view {
                 display: block;
@@ -58,10 +62,11 @@ class TodoView extends LitElement {
                 margin-top: calc(4 * var(--spacing));
             }
          </style>
+         
           <div class="input-layout" @keyup="${this.shortcutListener}">
               <vaadin-text-field
                   placeholder="Task"
-                  value="${this.task}"
+                  value="${this.task || ''}"
                   @change="${this.updateTask}"
                   ></vaadin-text-field>
                   <vaadin-button
@@ -69,78 +74,62 @@ class TodoView extends LitElement {
                   @click="${this.addTodo}"
                   >Add Todo</vaadin-button>
           </div>
-              <div class="todos-list">
-              ${this.applyFilter(this.todos).map(todo => html`
-                  <div class="todo-item">
-                      <vaadin-checkbox
-                      ?checked="${todo.complete}"
-                      @change="${e => this.updateTodoStatus(todo, e.target.checked)}"
-                      >${todo.task}</vaadin-checkbox>
-                  </div>
-                  `)}
+          <div class="todos-list">
+          ${this.todos.map(todo => html`
+              <div class="todo-item">
+                  <vaadin-checkbox
+                  ?checked="${todo.complete}"
+                  @change="${e => this.updateTodoStatus(todo, e.target.checked)}"
+                  >${todo.task}</vaadin-checkbox>
               </div>
-              <vaadin-radio-group
-                  class="visibility-filters"
-                  value="${this.filter}"
-                  @value-changed="${this.filterChanged}"
-              >
-                  ${Object.values(VisibilityFilters).map(filter => html`
-                      <vaadin-radio-button value="${filter}">${filter}</vaadin-radio-button>
-                      `)}
-              </vaadin-radio-group>
-              <vaadin-button @click="${this.clearCompleted}">
-              Clear Completed
-              </vaadin-button>
+              `)}
+          </div>
+          <vaadin-radio-group
+              class="visibility-filters"
+              value="${this.filter}"
+              @value-changed="${this.filterChanged}"
+          >
+              ${Object.values(VisibilityFilters).map(filter => html`
+                  <vaadin-radio-button value="${filter}">${filter}</vaadin-radio-button>
+                  `)}
+          </vaadin-radio-group>
+          <vaadin-button @click="${this.clearCompleted}">
+          Clear Completed
+          </vaadin-button>
     `;
-    }
+	}
 
-    clearCompleted() {
-        this.todos = this.todos.filter(todo => !todo.complete);
-    }
+	clearCompleted() {
+		store.dispatch(clearCompleted());
+	}
 
-    filterChanged(e) {
-        this.filter = e.target.value;
-    }
+	filterChanged(e) {
+		store.dispatch(updateFilter(e.detail.value));
+	}
 
-    applyFilter(todos) {
-        switch (this.filter) {
-            case VisibilityFilters.SHOW_ACTIVE:
-                return todos.filter(todo => !todo.complete);
-            case VisibilityFilters.SHOW_COMPLETED:
-                return todos.filter(todo => todo.complete);
-            default:
-                return todos;
-        }
-    }
+	updateTodoStatus(updatedTodo, complete) {
+		store.dispatch(updateTodoStatus(updatedTodo, complete));
+	}
 
-    updateTodoStatus(updatedTodo, complete) {
-        this.todos = this.todos.map(todo => updatedTodo === todo ? { ...updatedTodo,
-            complete
-        } : todo);
-    }
+	updateTask(e) {
+		this.task = e.target.value;
+	}
 
-    updateTask(e) {
-        this.task = e.target.value;
-    }
+	addTodo() {
+		if (this.task) {
+		 store.dispatch(addTodo(this.task));
+			this.task = '';
+		}
+	}
 
-    addTodo() {
-        if (this.task) {
-            this.todos = [...this.todos, {
-                task: this.task,
-                complete: false
-            }];
-            this.task = '';
-        }
-    }
-
-    shortcutListener(e) {
-        if (e.key === 'Enter') {
-            this.addTodo();
-        }
-    }
-    createRenderRoot() {
-        return this;
-    }
+	shortcutListener(e) {
+		if (e.key === 'Enter') {
+			this.addTodo();
+		}
+	}
+	createRenderRoot() {
+		return this;
+	}
 }
 
 customElements.define('todo-view', TodoView);
