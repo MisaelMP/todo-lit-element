@@ -62,7 +62,7 @@ class TodoView extends connect(store)(BaseView) {
                 margin-top: calc(4 * var(--spacing));
             }
          </style>
-         
+
           <div class="input-layout" @keyup="${this.shortcutListener}">
               <vaadin-text-field
                   placeholder="Task"
@@ -126,9 +126,6 @@ class TodoView extends connect(store)(BaseView) {
 		if (e.key === 'Enter') {
 			this.addTodo();
 		}
-	}
-	createRenderRoot() {
-		return this;
 	}
 }
 

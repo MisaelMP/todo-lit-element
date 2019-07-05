@@ -1,6 +1,7 @@
 import './styles.css';
 import './views/todo-view';
 import { Router } from '@vaadin/router';
+import css from './styles.css';
 
 window.addEventListener('load', () => {
   initRouter();
@@ -8,7 +9,7 @@ window.addEventListener('load', () => {
 
 function initRouter() {
   const router = new Router(document.querySelector('main'));
-	
+
   router.setRoutes([
     {
       path: '/',

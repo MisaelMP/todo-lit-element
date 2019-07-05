@@ -51,10 +51,6 @@ const plugins = [
 	new CopyWebpackPlugin([...polyfills, ...assets], {
 		ignore: ['.DS_Store']
 	}),
-	new MiniCssExtractPlugin({
-		filename: "styles.[chunkhash:8].css",
-		chunkFilename: "styles.css"
-	}),
 ];
 
 module.exports = ({
