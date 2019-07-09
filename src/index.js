@@ -5,6 +5,7 @@ import css from './styles.css';
 
 window.addEventListener('load', () => {
   initRouter();
+  registerSW();
 });
 
 function initRouter() {
@@ -28,4 +29,16 @@ function initRouter() {
         import(/* webpackChunkName: "not-found-view" */ './views/not-found-view')
     }
   ]);
+}
+
+async function registerSW() {
+  if('serviceWorker' in navigator) {
+    try {
+      await navigator.serviceWorker.register('./sw.js');
+    } catch(e) {
+      console.log('serviceWorker registration failed. Sorry about that');
+    }
+  } else {
+    console.log('Your browser does not support serviceWorker');
+  }
 }
